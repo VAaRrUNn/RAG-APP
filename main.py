@@ -1,5 +1,6 @@
 import argparse
 import faiss
+import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.vector_stores.faiss import FaissVectorStore
@@ -11,6 +12,7 @@ warnings.filterwarnings("ignore")
 
 
 def load_and_prepare_model(filepath):
+    print(f"loading all the models...")
     documents = SimpleDirectoryReader(filepath).load_data()
 
     embed_model = HuggingFaceEmbeddings(
@@ -31,6 +33,9 @@ def load_and_prepare_model(filepath):
     model = AutoModelForCausalLM.from_pretrained(checkpoint)
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
+    print(f"Models are runnning on {device}")
     return (index, model, tokenizer)
 
 
