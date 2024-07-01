@@ -23,7 +23,7 @@ def _chat(filepath, message, history):
     return response
 
 
-def main():
+def _main():
     # parse arguments
     parser = argparse.ArgumentParser(
         description="Simple CLI to take a string input")
@@ -44,4 +44,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _main()
