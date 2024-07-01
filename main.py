@@ -12,9 +12,9 @@ warnings.filterwarnings("ignore")
 
 
 def load_models():
-    checkpoint = "microsoft/phi-1_5"
-    model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map="auto")
-    tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+    # quantized model...
+    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-7B-Instruct")
+    model = AutoModelForCausalLM.from_pretrained("fubuki9/Qwen2-7B-Instruct-nf4", device_map = "auto")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
@@ -86,7 +86,7 @@ flag = 0
 
 
 def preprocessing(filepath):
-    index, model, tokenizer = None
+    index = model = tokenizer = None
 
     # Preprocessing and loading
     index, vector_store = make_index(filepath=filepath)
@@ -112,16 +112,3 @@ SYS_PROMPT = """You are an assistant for answering questions.
 You are given the extracted parts of a long document and a question. Provide a conversational answer.
 If you don't know the answer, just say "I do not know." Don't make up an answer."""
 
-# if __name__ == '__main__':
-
-#     parser = argparse.ArgumentParser(
-#         description="Simple CLI to take a string input")
-#     parser.add_argument('-q', '--query', type=str,
-#                         default="Tell me about y", help="Input query string")
-
-#     parser.add_argument('-f', '--filepath', type=str,
-#                         default="/content/data", help="file dir for PDF/txt.. files")
-
-#     args = parser.parse_args()
-#     query = args.query
-#     filepath = args.filepath

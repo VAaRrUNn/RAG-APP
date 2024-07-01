@@ -35,7 +35,7 @@ def _main():
     args = parser.parse_args()
     filepath = args.filepath
 
-    model, tokenizer, index, vector_store = None
+    model = tokenizer = index = vector_store = None
     if flag == 0:
         model, tokenizer, index, vector_store = preprocessing(
             filepath=filepath)
