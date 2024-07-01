@@ -85,7 +85,7 @@ def main():
     parser.add_argument('-q', '--query', type=str,
                         default="Tell me about y", help="Input query string")
     
-    parser.add_argument('-q', '--filepath', type=str,
+    parser.add_argument('-f', '--filepath', type=str,
                         default="/content/data", help="file dir for PDF/txt.. files")
 
     args = parser.parse_args()
