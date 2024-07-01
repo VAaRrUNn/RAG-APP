@@ -1,7 +1,7 @@
 import gradio as gr
 import argparse
 
-from main import main
+from main import preprocessing, gen
 from functools import partial
 
 SYS_PROMPT = """You are an assistant for answering questions.
@@ -9,18 +9,20 @@ You are given the extracted parts of a long document and a question. Provide a c
 If you don't know the answer, just say "I do not know." Don't make up an answer."""
 
 
-def generate_response(filepath, message):
-    res = main(SYS_PROMPT=SYS_PROMPT,
-               filepath=filepath,
-               query=message)
+def generate_response(statics, message):
+    res = gen(**statics,
+              query=message)
     return res
 
 
-def _chat(filepath, message, history):
-    response = generate_response(SYS_PROMPT, filepath, message)
+def _chat(statics, message, history):
+    response = generate_response(statics, message)
 #   temp = {"msg": message, "history": history,
 #           "response": response}
     return response
+
+
+flag = 0
 
 
 def _main():
@@ -33,7 +35,19 @@ def _main():
     args = parser.parse_args()
     filepath = args.filepath
 
-    chat = partial(_chat, filepath)
+    model, tokenizer, index, vector_store = None
+    if flag == 0:
+        model, tokenizer, index, vector_store = preprocessing(
+            filepath=filepath)
+        flag = 1
+
+    statics = {
+        "model": model,
+        "tokenizer": tokenizer,
+        "index": index,
+    }
+
+    chat = partial(_chat, statics)
     iface = gr.ChatInterface(
         fn=chat,
         title="Simple Chatbot",

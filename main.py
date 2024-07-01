@@ -11,10 +11,22 @@ import pprint
 warnings.filterwarnings("ignore")
 
 
-def load_and_prepare_model(filepath):
-    print(f"loading all the models...")
+def load_models():
+    checkpoint = "microsoft/phi-1_5"
+    model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map="auto")
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
+    print(f"Models are runnning on {device}")
+    return (model, tokenizer)
+
+
+def make_index(filepath):
+    print(f"loading data")
     documents = SimpleDirectoryReader(filepath).load_data()
 
+    print("Making vector store and index")
     embed_model = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-mpnet-base-v2")
 
@@ -28,15 +40,7 @@ def load_and_prepare_model(filepath):
         embed_model=embed_model,
         vector_store=vector_store
     )
-
-    checkpoint = "microsoft/phi-1_5"
-    model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map="auto")
-    tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device)
-    print(f"Models are runnning on {device}")
-    return (index, model, tokenizer)
+    return (index, vector_store)
 
 
 def get_top_k_matches(query, index, k=3):
@@ -47,8 +51,6 @@ def get_top_k_matches(query, index, k=3):
     nodes = retriever.retrieve(query)
     return [node.node.text for node in nodes]
 
-
-# Loading model and tokenizer
 
 def format_prompt(prompt, retrieved_docs, k):
     PROMPT = f"Question:{prompt}\nContext:"
@@ -80,31 +82,46 @@ def generate(model, tokenizer, SYS_PROMPT, formatted_prompt):
     return tokenizer.decode(response, skip_special_tokens=True)
 
 
-def main(SYS_PROMPT, query, filepath):
-    index, model, tokenizer = load_and_prepare_model(filepath=filepath)
+flag = 0
+
+
+def preprocessing(filepath):
+    index, model, tokenizer = None
+
+    # Preprocessing and loading
+    index, vector_store = make_index(filepath=filepath)
+    model, tokenizer = load_models()
+
+    return (model, tokenizer, index, vector_store)
+
+
+def gen(model,
+        tokenizer,
+        index,
+        query):
+    # get all related docs
     retrieved_docs = get_top_k_matches(query, index)
 
+    # generate output
     formatted_prompt = format_prompt(SYS_PROMPT, retrieved_docs, 3)
     response = generate(model, tokenizer, SYS_PROMPT, formatted_prompt)
     return response
 
 
-if __name__ == '__main__':
-    SYS_PROMPT = """You are an assistant for answering questions.
-    You are given the extracted parts of a long document and a question. Provide a conversational answer.
-    If you don't know the answer, just say "I do not know." Don't make up an answer."""
+SYS_PROMPT = """You are an assistant for answering questions.
+You are given the extracted parts of a long document and a question. Provide a conversational answer.
+If you don't know the answer, just say "I do not know." Don't make up an answer."""
 
-    parser = argparse.ArgumentParser(
-        description="Simple CLI to take a string input")
-    parser.add_argument('-q', '--query', type=str,
-                        default="Tell me about y", help="Input query string")
+# if __name__ == '__main__':
 
-    parser.add_argument('-f', '--filepath', type=str,
-                        default="/content/data", help="file dir for PDF/txt.. files")
+#     parser = argparse.ArgumentParser(
+#         description="Simple CLI to take a string input")
+#     parser.add_argument('-q', '--query', type=str,
+#                         default="Tell me about y", help="Input query string")
 
-    args = parser.parse_args()
-    query = args.query
-    filepath = args.filepath
-    main(SYS_PROMPT=SYS_PROMPT,
-         filepath=filepath,
-         query=query,)
+#     parser.add_argument('-f', '--filepath', type=str,
+#                         default="/content/data", help="file dir for PDF/txt.. files")
+
+#     args = parser.parse_args()
+#     query = args.query
+#     filepath = args.filepath
