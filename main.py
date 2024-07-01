@@ -10,8 +10,8 @@ import pprint
 warnings.filterwarnings("ignore")
 
 
-def load_and_prepare_model():
-    documents = SimpleDirectoryReader("/content/data").load_data()
+def load_and_prepare_model(filepath):
+    documents = SimpleDirectoryReader(filepath).load_data()
 
     embed_model = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-mpnet-base-v2")
@@ -84,11 +84,15 @@ def main():
         description="Simple CLI to take a string input")
     parser.add_argument('-q', '--query', type=str,
                         default="Tell me about y", help="Input query string")
+    
+    parser.add_argument('-q', '--filepath', type=str,
+                        default="/content/data", help="file dir for PDF/txt.. files")
 
     args = parser.parse_args()
     query = args.query
+    filepath = args.filepath
 
-    index, model, tokenizer = load_and_prepare_model()
+    index, model, tokenizer = load_and_prepare_model(filepath = filepath)
     retrieved_docs = get_top_k_matches(query, index)
 
     formatted_prompt = format_prompt(SYS_PROMPT, retrieved_docs, 3)
