@@ -30,7 +30,7 @@ def load_and_prepare_model(filepath):
     )
 
     checkpoint = "microsoft/phi-1_5"
-    model = AutoModelForCausalLM.from_pretrained(checkpoint)
+    model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map="auto")
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -80,7 +80,16 @@ def generate(model, tokenizer, SYS_PROMPT, formatted_prompt):
     return tokenizer.decode(response, skip_special_tokens=True)
 
 
-def main():
+def main(SYS_PROMPT, query, filepath):
+    index, model, tokenizer = load_and_prepare_model(filepath=filepath)
+    retrieved_docs = get_top_k_matches(query, index)
+
+    formatted_prompt = format_prompt(SYS_PROMPT, retrieved_docs, 3)
+    response = generate(model, tokenizer, SYS_PROMPT, formatted_prompt)
+    return response
+
+
+if __name__ == '__main__':
     SYS_PROMPT = """You are an assistant for answering questions.
     You are given the extracted parts of a long document and a question. Provide a conversational answer.
     If you don't know the answer, just say "I do not know." Don't make up an answer."""
@@ -89,22 +98,13 @@ def main():
         description="Simple CLI to take a string input")
     parser.add_argument('-q', '--query', type=str,
                         default="Tell me about y", help="Input query string")
-    
+
     parser.add_argument('-f', '--filepath', type=str,
                         default="/content/data", help="file dir for PDF/txt.. files")
 
     args = parser.parse_args()
     query = args.query
     filepath = args.filepath
-
-    index, model, tokenizer = load_and_prepare_model(filepath = filepath)
-    retrieved_docs = get_top_k_matches(query, index)
-
-    formatted_prompt = format_prompt(SYS_PROMPT, retrieved_docs, 3)
-    response = generate(model, tokenizer, SYS_PROMPT, formatted_prompt)
-
-    pprint.pprint(response)
-
-
-if __name__ == '__main__':
-    main()
+    main(SYS_PROMPT=SYS_PROMPT,
+         filepath=filepath,
+         query=query,)
