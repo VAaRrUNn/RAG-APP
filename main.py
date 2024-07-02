@@ -1,7 +1,7 @@
 import argparse
 import faiss
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.vector_stores.faiss import FaissVectorStore
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
@@ -12,10 +12,21 @@ warnings.filterwarnings("ignore")
 
 
 def load_models():
-    # quantized model...
+    # Config for quantization
+    compute_dtype = getattr(torch, "float16")
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type='nf4',
+        bnb_4bit_compute_dtype=compute_dtype,
+        bnb_4bit_use_double_quant=False,
+        # llm_int8_enable_fp32_cpu_offload=True,
+    )
+
+    # Applying quantization
     checkpoint = "Qwen/Qwen2-7B-Instruct"
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-    model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map = "auto")
+    model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map = "auto",
+                                                      quantization_config=bnb_config,                                              trust_remote_code=True,)
     return (model, tokenizer)
 
 
@@ -58,29 +69,29 @@ def format_prompt(prompt, retrieved_docs, k):
 
 # Generate function
 def generate(model, tokenizer, SYS_PROMPT, formatted_prompt):
+    device = "cuda" # quantization only works on cuda for now
     formatted_prompt = formatted_prompt[:2000]  # to avoid GPU OOM
     messages = [{"role": "system", "content": SYS_PROMPT},
                 {"role": "user", "content": formatted_prompt}]
     # tell the model to generate
-    input_ids = tokenizer.apply_chat_template(
-        messages,
-        add_generation_prompt=True,
-        return_tensors="pt"
-    ).to(model.device)
-    outputs = model.generate(
-        input_ids,
-        max_new_tokens=4000,
-        eos_token_id=tokenizer.eos_token_id,
-        do_sample=True,
-        temperature=0.6,
-        top_p=0.9,
+    text = tokenizer.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True
     )
-    response = outputs[0][input_ids.shape[-1]:]
-    return tokenizer.decode(response, skip_special_tokens=True)
+    model_inputs = tokenizer([text], return_tensors="pt").to(device)
+    generated_ids = model.generate(
+    model_inputs.input_ids,
+    max_new_tokens=512
+    )
+    generated_ids = [
+    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+    ]
+    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+    return response
 
 
 flag = 0
-
 
 def preprocessing(filepath):
     index = model = tokenizer = None
