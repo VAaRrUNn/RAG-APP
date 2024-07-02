@@ -69,7 +69,7 @@ def generate(model, tokenizer, SYS_PROMPT, formatted_prompt):
     ).to(model.device)
     outputs = model.generate(
         input_ids,
-        max_new_tokens=1024,
+        max_new_tokens=4000,
         eos_token_id=tokenizer.eos_token_id,
         do_sample=True,
         temperature=0.6,
