@@ -36,6 +36,7 @@ def _main():
     filepath = args.filepath
 
     model = tokenizer = index = vector_store = None
+    global flag
     if flag == 0:
         model, tokenizer, index, vector_store = preprocessing(
             filepath=filepath)

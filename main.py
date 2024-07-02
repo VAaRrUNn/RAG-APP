@@ -15,10 +15,6 @@ def load_models():
     # quantized model...
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-7B-Instruct")
     model = AutoModelForCausalLM.from_pretrained("fubuki9/Qwen2-7B-Instruct-nf4", device_map = "auto")
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device)
-    print(f"Models are runnning on {device}")
     return (model, tokenizer)
 
 
