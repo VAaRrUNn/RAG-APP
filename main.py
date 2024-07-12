@@ -24,6 +24,7 @@ def load_models():
 
     # Applying quantization
     checkpoint = "Qwen/Qwen2-7B-Instruct"
+    checkpoint = "microsoft/phi-2"
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     model = AutoModelForCausalLM.from_pretrained(checkpoint, device_map = "auto",
                                                       quantization_config=bnb_config,                                              trust_remote_code=True,)
