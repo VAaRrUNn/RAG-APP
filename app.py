@@ -1,7 +1,7 @@
 import gradio as gr
 import argparse
 
-from main import preprocessing, gen
+from main import preprocessing, gen, test_model
 from functools import partial
 
 SYS_PROMPT = """You are an assistant for answering questions.
@@ -40,6 +40,7 @@ def _main():
     if flag == 0:
         model, tokenizer, index, vector_store = preprocessing(
             filepath=filepath)
+        test_model(model, tokenizer)
         flag = 1
 
     statics = {

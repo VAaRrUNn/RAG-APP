@@ -3,12 +3,11 @@ from llama_index.core import VectorStoreIndex,SimpleDirectoryReader,ServiceConte
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.core.prompts.prompts import SimpleInputPrompt
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
-from llama_index.core import ServiceContext
 from llama_index.embeddings.langchain import LangchainEmbedding
 
 def load_data(dir_path):
     documents = SimpleDirectoryReader(dir_path).load_data()
-    print(f"Done loading data")
+    print("Done loading data")
     return documents
 
 
