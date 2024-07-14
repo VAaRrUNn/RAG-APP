@@ -28,7 +28,12 @@ def load_model(checkpoint = None):
 def test_model(pipe):
     """simple test function to test the working of model"""
     try:
-        generate(pipe, query)
+        query = "who are you and what can you do..."
+        output, res = generate(pipe, query)
+        print(f"Testing... model")
+        print(f"Query: {query}")
+        print(f"Output: {res}")
+        print(f"Success...")
     except Exception as e:
         print("Error while processing model...")
         sys.exit(0)
