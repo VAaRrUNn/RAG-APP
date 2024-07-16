@@ -71,7 +71,7 @@ def format_prompt(prompt, retrieved_docs):
     return PROMPT
 
 
-def generate(pipe, formatted_prompt, max_new_tokens=120, temperature=0.7, top_p=0.9, do_sample=True, repetition_penalty=1.1):
+def generate(pipe, formatted_prompt, max_new_tokens=20, temperature=0.7, top_p=0.9, do_sample=True, repetition_penalty=1.1):
     torch.cuda.empty_cache()
     print("Now generating...")
     formatted_prompt = formatted_prompt[:2000]  # to avoid OOM

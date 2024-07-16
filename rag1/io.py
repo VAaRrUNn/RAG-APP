@@ -34,7 +34,7 @@ def setup_vector_store_index(filepath):
 
     return (index, vector_store)
 
-def get_top_k_matches(query, index, k=3):
+def get_top_k_matches(query, index, k=2):
     """
     function to retrieve top k matches from vector store
     """
