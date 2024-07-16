@@ -4,7 +4,7 @@ import shutil
 import argparse
 from functools import partial
 
-from .model import preprocessing, test_model, gen, load_model
+from .model import test_model, gen, load_model
 from .io import preprocessing
 
 flag = 0
