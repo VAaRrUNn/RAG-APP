@@ -67,7 +67,7 @@ def ui(chat):
             description="Enter your message and get a response from the AI.",
         )
 
-    demo.launch()
+    demo.launch(share=True)
 
 def _main():
 

@@ -16,7 +16,7 @@ def load_model(checkpoint = None,
               device = None):
     
     torch.cuda.empty_cache()
-    
+
     if checkpoint is None:
         checkpoint = "microsoft/Phi-3-mini-4k-instruct"
 
@@ -41,8 +41,8 @@ def load_model(checkpoint = None,
         pipe = pipeline("text-generation", 
                         model=checkpoint,
                         trust_remote_code=True,
-                        device=device,
-                        quantization_config=bnb_config)
+                        quantization_config=bnb_config,
+                        model_kwargs={"device_map": device})
     else:
         print("In cpu")
         pipe = pipeline("text-generation", 

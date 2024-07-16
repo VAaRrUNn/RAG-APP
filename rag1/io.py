@@ -15,8 +15,11 @@ def setup_vector_store_index(filepath):
 
     print("Making vector store and index")
 
+    # By default loading model on CPU
     embed_model = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-mpnet-base-v2")
+        model_name="sentence-transformers/all-mpnet-base-v2",
+        model_kwargs={"device": "cpu"}
+        )
 
     d = 768
     faiss_index = faiss.IndexFlatL2(d)
