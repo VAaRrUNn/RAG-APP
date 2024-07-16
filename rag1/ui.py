@@ -4,7 +4,7 @@ import shutil
 import argparse
 from functools import partial
 
-from rag1.main import preprocessing, test_model, gen, load_model
+from .main import preprocessing, test_model, gen, load_model
 
 flag = 0
 

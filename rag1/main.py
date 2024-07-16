@@ -3,6 +3,8 @@ from transformers import pipeline
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.vector_stores.faiss import FaissVectorStore
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
+import torch 
+
 from functools import partial
 import sys
 import warnings
@@ -20,7 +22,9 @@ def load_model(checkpoint = None):
     if checkpoint is None:
         checkpoint = "microsoft/Phi-3-mini-4k-instruct"
 
-    pipe = pipeline("text-generation", model=checkpoint, trust_remote_code=True, device="auto")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Loading model on: {device}")
+    pipe = pipeline("text-generation", model=checkpoint, trust_remote_code=True, device=device)
     return pipe
 
 def test_model(pipe):
