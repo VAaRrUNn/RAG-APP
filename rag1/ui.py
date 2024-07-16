@@ -4,15 +4,32 @@ import shutil
 import argparse
 from functools import partial
 
-from main import preprocessing, test_model, gen
+from .main import preprocessing, test_model, gen
+
+flag = 0
+
+statics = {
+        "pipe": None,
+        "index": None,
+        "flag": 0,
+        "filepath": None,
+    }
 
 def generate_response(statics, message):
     res = gen(**statics,
               query=message)
     return res
 
+def chat(message, history):
+    global static
+    if statics.flag == 0:
+        pipe, index, vector_store = preprocessing(
+                    filepath=statics.filepath)
+        
+        statics.flag = 1
+        statics.pipe = pipe
+        statics.index = index
 
-def _chat(statics, message, history):
     response = generate_response(statics, message)
     return response
 
@@ -30,7 +47,6 @@ def save_files(files):
         return f"Files uploaded successfully to the 'data' folder: {', '.join(saved_files)}"
     return "No files were uploaded."
 
-flag = 0
 
 def ui(chat):
     with gr.Blocks() as demo:
@@ -51,34 +67,21 @@ def ui(chat):
     demo.launch()
 
 def _main():
+
+    global statics
+
     # parse arguments
     parser = argparse.ArgumentParser(
         description="Simple CLI to take a string input")
     parser.add_argument('-f', '--filepath', type=str,
-                        default="../content/data", help="file dir for PDF/txt.. files")
+                        default="data", help="file dir for PDF/txt.. files")
 
     args = parser.parse_args()
-    filepath = args.filepath
-
-    pipe = index = vector_store = None
-
-    global flag
-    if flag == 0:
-        pipe, index, vector_store = preprocessing(
-            filepath=filepath)
-        # test_model(pipe)
-        flag = 1
-
-    statics = {
-        "pipe": pipe,
-        "index": index,
-    }
-
-    chat = partial(_chat, statics)
+    statics.filepath = args.filepath
     
-    # Ensure the 'data' directory exists
-    if not os.path.exists('data'):
-        os.makedirs('data')
+    # Ensure the filepath exists
+    if not os.path.exists(statics.filepath):
+        os.makedirs(statics.filepath)
 
     ui(chat)
 
