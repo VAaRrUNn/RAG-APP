@@ -14,9 +14,6 @@ Answer should be concise and write answer in conversational answer.
 """
 def load_model(checkpoint = None,
               device = None):
-    
-    torch.cuda.empty_cache()
-
     if checkpoint is None:
         checkpoint = "microsoft/Phi-3-mini-4k-instruct"
 
@@ -75,6 +72,8 @@ def format_prompt(prompt, retrieved_docs):
 
 
 def generate(pipe, formatted_prompt, max_new_tokens=120, temperature=0.7, top_p=0.9, do_sample=True, repetition_penalty=1.1):
+    torch.cuda.empty_cache()
+    print("Now generating...")
     formatted_prompt = formatted_prompt[:2000]  # to avoid OOM
     messages = f"System: {SYS_PROMPT}\n{formatted_prompt}\nAssistant:"
     
