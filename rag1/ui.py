@@ -17,7 +17,8 @@ statics = {
     }
 
 def generate_response(statics, message):
-    res = gen(**statics,
+    res = gen(pipe = statics["pipe"],
+              index = statics["index"],
               query=message)
     return res
 

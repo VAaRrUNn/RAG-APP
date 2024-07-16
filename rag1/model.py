@@ -14,7 +14,9 @@ Answer should be concise and write answer in conversational answer.
 """
 def load_model(checkpoint = None,
               device = None):
-
+    
+    torch.cuda.empty_cache()
+    
     if checkpoint is None:
         checkpoint = "microsoft/Phi-3-mini-4k-instruct"
 
