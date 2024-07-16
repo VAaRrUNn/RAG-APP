@@ -22,13 +22,13 @@ def generate_response(statics, message):
 
 def chat(message, history):
     global static
-    if statics.flag == 0:
+    if statics["flag"] == 0:
         pipe, index, vector_store = preprocessing(
-                    filepath=statics.filepath)
+                    filepath=statics["filepath"])
         
-        statics.flag = 1
-        statics.pipe = pipe
-        statics.index = index
+        statics["flag"] = 1
+        statics["pipe"] = pipe
+        statics["index"] = index
 
     response = generate_response(statics, message)
     return response
@@ -77,11 +77,11 @@ def _main():
                         default="data", help="file dir for PDF/txt.. files")
 
     args = parser.parse_args()
-    statics.filepath = args.filepath
+    statics["filepath"] = args.filepath
     
     # Ensure the filepath exists
-    if not os.path.exists(statics.filepath):
-        os.makedirs(statics.filepath)
+    if not os.path.exists(statics["filepath"]):
+        os.makedirs(statics["filepath"])
 
     ui(chat)
 
