@@ -4,7 +4,8 @@ import shutil
 import argparse
 from functools import partial
 
-from .main import preprocessing, test_model, gen, load_model
+from .model import preprocessing, test_model, gen, load_model
+from .io import preprocessing
 
 flag = 0
 
@@ -26,7 +27,9 @@ def chat(message, history):
         index, vector_store = preprocessing(
                     filepath=statics["filepath"])
         
-        statics["flag"] = 1
+        if index is not None:
+            statics["flag"] = 1
+
         statics["index"] = index
 
     response = generate_response(statics, message)
