@@ -35,12 +35,14 @@ def load_model(checkpoint = None,
     pipe = None
     
     if device == "cuda":
+        print("In cuda")
         pipe = pipeline("text-generation", 
                         model=checkpoint,
                         trust_remote_code=True,
                         device=device,
                         quantization_config=bnb_config)
     else:
+        print("In cpu")
         pipe = pipeline("text-generation", 
                         model=checkpoint,
                         trust_remote_code=True,
