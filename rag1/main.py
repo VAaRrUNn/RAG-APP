@@ -119,9 +119,9 @@ def preprocessing(filepath):
 
     # Preprocessing and loading
     index, vector_store = setup_vector_store_index(filepath=filepath)
-    pipe = load_model()
+    # pipe = load_model()
 
-    return (pipe, index, vector_store)
+    return (index, vector_store)
 
 
 def gen(pipe,

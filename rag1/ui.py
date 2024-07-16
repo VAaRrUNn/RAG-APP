@@ -4,7 +4,7 @@ import shutil
 import argparse
 from functools import partial
 
-from .main import preprocessing, test_model, gen
+from main import preprocessing, test_model, gen, load_model
 
 flag = 0
 
@@ -23,11 +23,10 @@ def generate_response(statics, message):
 def chat(message, history):
     global static
     if statics["flag"] == 0:
-        pipe, index, vector_store = preprocessing(
+        index, vector_store = preprocessing(
                     filepath=statics["filepath"])
         
         statics["flag"] = 1
-        statics["pipe"] = pipe
         statics["index"] = index
 
     response = generate_response(statics, message)
@@ -83,6 +82,8 @@ def _main():
     if not os.path.exists(statics["filepath"]):
         os.makedirs(statics["filepath"])
 
+    # load model
+    statics["pipe"] = load_model()
     ui(chat)
 
 
