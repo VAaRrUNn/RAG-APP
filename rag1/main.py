@@ -3,26 +3,24 @@ from transformers import pipeline
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.vector_stores.faiss import FaissVectorStore
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
-import gradio as gr
-
-import argparse
 from functools import partial
 import sys
 import warnings
 
 warnings.filterwarnings("ignore")
 
-
 SYS_PROMPT = """You are an assistant for answering questions.
-You are given the extracted parts of a long document and a question. Provide a conversational answer.
-If you don't know the answer, just say "I do not know." Don't make up an answer."""
+You are given the extracted parts of a long document and a question.
+If you don't know the answer, just say "I do not know." Don't make up an answer.
+Answer should be concise and write answer in conversational answer.
+"""
 
 def load_model(checkpoint = None):
 
     if checkpoint is None:
         checkpoint = "microsoft/Phi-3-mini-4k-instruct"
 
-    pipe = pipeline("text-generation", model=checkpoint, trust_remote_code=True)
+    pipe = pipeline("text-generation", model=checkpoint, trust_remote_code=True, device="auto")
     return pipe
 
 def test_model(pipe):
@@ -77,30 +75,45 @@ def format_prompt(prompt, retrieved_docs):
 
 
 # Generate function
-def generate(pipe, 
-             formatted_prompt,
-             max_new_tokens=100,
-             temperature=0.7,
-             top_p=0.9,
-             do_sample=True,
-             repetition_penalty=1.1):
-
+def generate(pipe, formatted_prompt, max_new_tokens=120, temperature=0.7, top_p=0.9, do_sample=True, repetition_penalty=1.1):
     formatted_prompt = formatted_prompt[:2000]  # to avoid OOM
-    messages = [{"role": "system", "content": SYS_PROMPT},
-                {"role": "user", "content": formatted_prompt}]
+    messages = f"System: {SYS_PROMPT}\n{formatted_prompt}\nAssistant:"
+    
+    model = pipe.model
+    tokenizer = pipe.tokenizer
+    
+    input_ids = tokenizer.encode(messages, return_tensors="pt").to(model.device)
+    full_response = ""
+    
+    while True:
+        outputs = model.generate(
+            input_ids,
+            max_new_tokens=max_new_tokens,
+            do_sample=do_sample,
+            temperature=temperature,
+            top_p=top_p,
+            repetition_penalty=repetition_penalty,
+#             pad_token_id=tokenizer.eos_token_id
+        )
+        
+        token_ids = outputs.cpu().squeeze().tolist()
+        end_token_id = pipe.tokenizer.eos_token_id
+        n_token_ids = [n for n in token_ids if n!=end_token_id]
+        
+        # exclude input from the final result.
+        full_sequence = pipe.tokenizer.decode(n_token_ids)
+        new_part = full_sequence[len(pipe.tokenizer.decode(input_ids[0])):]
+        full_response += new_part
+        
+        
+        if (len(token_ids) != len(n_token_ids)):
+            print("we are done")
+            break
 
-    output = pipe(
-        messages,
-        max_new_tokens=max_new_tokens,  # Increase this value for longer outputs
-        do_sample=do_sample,
-        temperature=temperature,
-        top_p=top_p,
-        repetition_penalty=repetition_penalty
-    )
-
-    # getting the last response
-    response = output[0]["generated_text"][-1]["content"]
-    return output, response
+        input_ids = outputs
+        
+    
+    return full_response
 
 def preprocessing(filepath):
 
@@ -120,60 +133,5 @@ def gen(pipe,
     # generate output
     formatted_prompt = format_prompt(query, retrieved_docs)
 
-    output, response = generate(pipe, formatted_prompt)
+    response = generate(pipe, formatted_prompt)
     return response
-
-
-## UI (Streamlit)
-
-def generate_response(statics, message):
-    res = gen(**statics,
-              query=message)
-    return res
-
-
-def _chat(statics, message, history):
-    response = generate_response(statics, message)
-    return response
-
-
-flag = 0
-
-
-def _main():
-    # parse arguments
-    parser = argparse.ArgumentParser(
-        description="Simple CLI to take a string input")
-    parser.add_argument('-f', '--filepath', type=str,
-                        default="../content/data", help="file dir for PDF/txt.. files")
-
-    args = parser.parse_args()
-    filepath = args.filepath
-
-    pipe = index = vector_store = None
-
-    global flag
-    if flag == 0:
-        pipe, index, vector_store = preprocessing(
-            filepath=filepath)
-        test_model(pipe)
-        flag = 1
-
-    statics = {
-        "pipe": pipe,
-        "index": index,
-    }
-
-    chat = partial(_chat, statics)
-    iface = gr.ChatInterface(
-        fn=chat,
-        title="Simple Chatbot",
-        description="Enter your message and get a response from the AI.",
-    )
-
-    iface.launch(share=True)
-
-
-if __name__ == "__main__":
-    _main()
-
