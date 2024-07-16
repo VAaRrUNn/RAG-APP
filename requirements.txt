@@ -1,0 +1,15 @@
+flash-attn
+faiss-gpu
+llama_index
+sentence_transformers
+transformers
+einops
+accelerate
+langchain
+bitsandbytes
+llama-index-llms-huggingface
+llama-index-prompts
+langchain-community
+llama-index-embeddings-langchain
+llama-index-vector-stores-faiss
+gradio
