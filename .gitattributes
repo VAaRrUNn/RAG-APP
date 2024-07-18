@@ -2,3 +2,4 @@ assets filter=lfs diff=lfs merge=lfs -text
 assets/images/rag1ui.png filter=lfs diff=lfs merge=lfs -text
 assets/** filter=lfs diff=lfs merge=lfs -text
 assets/gif/rag1ui.gif filter=lfs diff=lfs merge=lfs -text
+assets/images/poster.jpeg filter=lfs diff=lfs merge=lfs -text

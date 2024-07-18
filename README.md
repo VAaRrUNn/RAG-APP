@@ -1,5 +1,7 @@
 # Chat with Your Data
 
+![Poster](./assets/images/poster.jpeg)
+
 This repository implements a Retrieval-Augmented Generation (RAG) system using `llama-index`, `langchain`, and `huggingface`. It allows users to chat with their own data using advanced language models.
 
 ## Features
